@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSST 실습 보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1F2430;--paper:#F6F2EA;--card:#ECE5D8;--line:#D4CDBE;--accent:#B5462E;--teal:#2F6F6A;--muted:#4A4F5C;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;line-height:1.55}
+  header{background:var(--ink);color:var(--paper);padding:18px 16px}
+  header h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;font-size:14px;color:#BFC3CC}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+  .bar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:8px 0 16px}
+  .count{font-weight:700}
+  button{font:inherit;border:0;border-radius:10px;padding:12px 16px;cursor:pointer}
+  .primary{background:var(--accent);color:#fff;font-weight:700;width:100%;font-size:17px}
+  .ghost{background:var(--card);color:var(--ink)}
+  form{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:20px}
+  form h2{margin:0 0 8px;font-size:18px}
+  label{display:block;font-weight:700;font-size:14px;margin:12px 0 4px}
+  label small{font-weight:400;color:var(--muted)}
+  input,textarea{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+  textarea{min-height:64px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .msg{margin-top:10px;font-weight:700;color:var(--teal);min-height:1.5em}
+  .err{color:var(--accent)}
+  .wall{columns:1;column-gap:14px}
+  @media(min-width:640px){.wall{columns:2}}
+  @media(min-width:1000px){.wall{columns:3}}
+  .card{break-inside:avoid;background:var(--card);border-radius:14px;padding:14px 16px;margin:0 0 14px;border-left:6px solid var(--accent)}
+  .card.mine{outline:3px solid var(--teal)}
+  .who{font-weight:700}.who span{font-weight:400;color:var(--muted);font-size:14px}
+  .one{font-weight:700;margin:6px 0 8px;font-size:17px}
+  .sec{font-size:14px;margin:4px 0}.sec b{color:var(--teal)}
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px;color:var(--muted)}
+  .like{background:#fff;padding:6px 12px;border-radius:999px;font-size:14px}
+  .hide{background:transparent;color:var(--accent);padding:6px 8px;font-size:13px}
+  body.wallmode form{display:none}
+  body.wallmode .wall{columns:2}
+  @media(min-width:1400px){body.wallmode .wall{columns:3}}
+  body.wallmode .card{font-size:20px}
+  body.wallmode .one{font-size:24px}
+  body.wallmode .sec{font-size:18px}
+  .empty{color:var(--muted);text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<header>
+  <h1>내 사업 PSST 한 장 — 실습 보드</h1>
+  <p>전통예술인을 위한 창업 실전 가이드 · 2026.10.20 · 완성도보다 시작이 중요합니다</p>
+</header>
+<div class="wrap">
+  <form id="f" autocomplete="off">
+    <h2>내 PSST 올리기</h2>
+    <div class="row">
+      <div><label>이름 또는 닉네임 *</label><input name="name" maxlength="30" required></div>
+      <div><label>분야 <small>(선택)</small></label><input name="field" maxlength="30" placeholder="예: 판소리, 가야금"></div>
+    </div>
+    <label>한 문장 소개 *</label>
+    <textarea name="oneline" maxlength="200" required placeholder="[누구]의 [어떤 문제]를 [내 콘텐츠]로 해결해 [이렇게 돈을 번다]"></textarea>
+    <label>P · 문제 인식 <small>누가 어떤 불편·필요를 겪나?</small></label>
+    <textarea name="p" maxlength="200"></textarea>
+    <label>S · 실현 가능성 <small>내 공연·콘텐츠로 어떻게 해결? 이미 해 본 것은?</small></label>
+    <textarea name="s1" maxlength="200"></textarea>
+    <label>S · 성장 전략 <small>누구에게 얼마에 팔까? 처음 공략할 한 곳은?</small></label>
+    <textarea name="s2" maxlength="200"></textarea>
+    <label>T · 팀 <small>누가 함께하나? 부족한 역량은 어떻게?</small></label>
+    <textarea name="t" maxlength="200"></textarea>
+    <div style="margin-top:14px"><button class="primary" type="submit" id="go">보드에 올리기</button></div>
+    <div class="msg" id="msg"></div>
+  </form>
+
+  <div class="bar">
+    <div class="count" id="count">불러오는 중…</div>
+    <button class="ghost" id="mode" type="button">프로젝터 모드</button>
+  </div>
+  <div class="wall" id="wall"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL = 'https://dgcgnekkamdtuiqhgdrp.supabase.co';
+const SB_KEY = 'sb_publishable_SYvn-y61qeD3iScFWhSF2Q_0McfWi-W';
+const params = new URLSearchParams(location.search);
+const ADMIN = params.get('admin');
+const wall = document.getElementById('wall'), countEl = document.getElementById('count'), msg = document.getElementById('msg');
+let posts = new Map();
+let mine = new Set(); try { mine = new Set(JSON.parse(localStorage.getItem('psst-mine') || '[]')); } catch(e) {}
+let liked = new Set(); try { liked = new Set(JSON.parse(localStorage.getItem('psst-liked') || '[]')); } catch(e) {}
+const save = (k, s) => { try { localStorage.setItem(k, JSON.stringify([...s])); } catch(e) {} };
+
+if (location.hash === '#wall' || params.get('view') === 'wall') document.body.classList.add('wallmode');
+document.getElementById('mode').onclick = () => document.body.classList.toggle('wallmode');
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function sec(label, val) { if (!val) return null; const p = el('p', 'sec'); p.append(el('b', null, label + ' '), document.createTextNode(val)); return p; }
+
+function render() {
+  const list = [...posts.values()].filter(p => !p.hidden).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  countEl.textContent = '올라온 PSST ' + list.length + '개';
+  wall.replaceChildren();
+  if (!list.length) { wall.append(el('div', 'empty', '아직 올라온 카드가 없어요. 첫 번째로 올려 보세요!')); return; }
+  for (const p of list) {
+    const c = el('div', 'card' + (mine.has(p.id) ? ' mine' : ''));
+    const who = el('div', 'who', p.name); if (p.field) who.append(el('span', null, ' · ' + p.field));
+    c.append(who, el('div', 'one', p.oneline));
+    [sec('P', p.p), sec('S', p.s1), sec('S', p.s2), sec('T', p.t)].forEach(x => x && c.append(x));
+    const f = el('div', 'foot');
+    const like = el('button', 'like', (liked.has(p.id) ? '❤️ ' : '🤍 ') + (p.likes || 0)); like.type = 'button';
+    like.onclick = async () => {
+      if (liked.has(p.id)) return;
+      liked.add(p.id); save('psst-liked', liked);
+      const { data } = await sb.rpc('like_post', { pid: p.id });
+      if (typeof data === 'number') { p.likes = data; render(); }
+    };
+    f.append(like);
+    if (ADMIN) {
+      const h = el('button', 'hide', '숨기기'); h.type = 'button';
+      h.onclick = async () => { if (!confirm('이 카드를 숨길까요?')) return; const { data } = await sb.rpc('hide_post', { pid: p.id, tok: ADMIN }); if (data) { posts.delete(p.id); render(); } else alert('관리자 키가 맞지 않습니다'); };
+      f.append(h);
+    }
+    c.append(f); wall.append(c);
+  }
+}
+
+let sb;
+async function load() {
+  const { data, error } = await sb.from('posts').select('*').order('created_at', { ascending: false }).limit(500);
+  if (error) { countEl.textContent = '연결이 원활하지 않아요. 잠시 후 새로고침해 주세요.'; return; }
+  posts = new Map(data.map(p => [p.id, p])); render();
+}
+
+try {
+  sb = supabase.createClient(SB_URL, SB_KEY);
+  load();
+  sb.channel('posts').on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, payload => {
+    const r = payload.new;
+    if (payload.eventType === 'DELETE') posts.delete(payload.old.id);
+    else if (r) { if (r.hidden) posts.delete(r.id); else posts.set(r.id, r); }
+    render();
+  }).subscribe();
+  setInterval(load, 15000);
+} catch (e) { countEl.textContent = '보드를 불러오지 못했어요. 새로고침해 주세요.'; }
+
+document.getElementById('f').onsubmit = async ev => {
+  ev.preventDefault();
+  const fd = new FormData(ev.target), v = k => (fd.get(k) || '').toString().trim() || null;
+  const row = { name: v('name'), field: v('field'), oneline: v('oneline'), p: v('p'), s1: v('s1'), s2: v('s2'), t: v('t') };
+  if (!row.name || !row.oneline) { msg.className = 'msg err'; msg.textContent = '이름과 한 문장 소개는 꼭 적어 주세요.'; return; }
+  const btn = document.getElementById('go'); btn.disabled = true; btn.textContent = '올리는 중…';
+  const { data, error } = await sb.from('posts').insert(row).select().single();
+  btn.disabled = false; btn.textContent = '보드에 올리기';
+  if (error) { msg.className = 'msg err'; msg.textContent = '올리지 못했어요. 글자 수를 확인하고 다시 시도해 주세요.'; return; }
+  mine.add(data.id); save('psst-mine', mine); posts.set(data.id, data); render();
+  msg.className = 'msg'; msg.textContent = '올라갔습니다! 아래 보드에서 내 카드를 확인하세요.';
+  ev.target.reset();
+  setTimeout(() => wall.querySelector('.mine')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+};
+</script>
+</body>
+</html>
