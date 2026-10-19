@@ -25,7 +25,9 @@
   label small{font-weight:400;color:var(--muted)}
   input,textarea{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
   textarea{min-height:64px;resize:vertical}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+  @media(max-width:520px){.row{grid-template-columns:minmax(0,1fr)}}
+  html,body{max-width:100%;overflow-x:hidden}
   .msg{margin-top:10px;font-weight:700;color:var(--teal);min-height:1.5em}
   .err{color:var(--accent)}
   .wall{columns:1;column-gap:14px}
